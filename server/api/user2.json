@@ -1,0 +1,11 @@
+{
+    "1": {
+        "id": 1,
+        "email": "admin@test.com",
+        "passwordHash": "123456",
+        "profile": {
+            "firstName": "Admin",
+            "lastName": "Test"
+        }
+    }
+}
