@@ -6,7 +6,8 @@
   "scripts": {
     "build": "browserify --extension=.jsx --extension=.js client/app.jsx -o client/public/build/build.js",
     "build-css": "rework-npm index.css | cleancss -o client/public/build/build.css",
-    "start": "npm run build && npm run build-css && nodemon app.js -e jsx,html --exec babel-node --presets \"es2015\"",
+    "start": "npm run build && npm run build-css && nodemon app.js -e jsx,html --exec babel-node --presets \"es2015\" ",
+    "debug": "npm run build && npm run build-css && nodemon app.js -e jsx,html --exec babel-node --presets \"es2015\" --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Henry Jia",

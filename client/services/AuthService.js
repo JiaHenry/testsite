@@ -4,6 +4,30 @@ import LocalStore from '../LocalStore';
 
 class AuthService {
 
+  checkEmail(email, cb) {
+    // TODO, check email local before send to server
+    
+    request({
+      url: 'checkEmail',
+      method: 'POST',
+      crossOrigin: true,
+      type: 'json',
+      data: {
+        email
+      }
+    })
+      .then((response) => {
+        response = response || {};
+        let error = response.error;
+
+        if (!error) {
+          cb(null, response);
+        } else {
+          cb(error);
+        }
+      });
+  }
+  
   login(email, password, cb) {
     request({
       url: constants.LOGIN_URL,
@@ -31,17 +55,27 @@ class AuthService {
     LocalStore.logout();
   }
 
-  signup(email, password, profile) {
+  signup(email, password, extra, cb) {
     request({
       url: constants.SIGNUP_URL,
       method: 'POST',
       crossOrigin: true,
       type: 'json',
       data: {
-        email, password, profile
+        email, password, extra
       }
     })
-      .then(this.handleAuth);
+      .then((response) => {
+        let error = response.error;
+
+        if (!error) {
+          response.email = email;
+          this.handleAuth(response);
+          cb(null);
+        } else {
+          cb(error);
+        }
+      });
   }
 
   updateProfile(profile) {
@@ -59,6 +93,25 @@ class AuthService {
       }
     });
   }
+  
+  updateContact(contact, cb) {
+    let id = LocalStore.user.id;
+
+    console.log('service.updateContact', contact);
+    
+    request({
+      url: "updateContact",
+      method: 'POST',
+      crossOrigin: true,
+      type: 'json',
+      data: {
+        id, contacts: contact
+      }
+    })
+    .then((response) => {
+          cb();
+        });
+  }
 
   getProfile(cb) {
     let id = LocalStore.user && LocalStore.user.id;
@@ -73,11 +126,14 @@ class AuthService {
         crossOrigin: true,
         type: 'json',
         data: {
-          id, fields: ['firstName', 'lastName']
+          id, fields: [
+            'shipto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone} ', 
+            'billto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone, email}',
+            'sameBillto']
         }
       })
         .then((response) => {
-          cb(response.profile || {});
+          cb(response || {});
         });
     }
   }

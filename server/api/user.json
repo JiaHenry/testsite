@@ -6,6 +6,79 @@
     "profile": {
       "firstName": "Admin",
       "lastName": "Test"
+    },
+    "contact": {
+      "shipto": {
+        "firstName": "Henry",
+        "lastName": "Jia",
+        "company": "GrapeCity",
+        "address1": "SHIP TO ADD1",
+        "address2": "",
+        "city": "Xi'an",
+        "state": "",
+        "postal": "710075",
+        "country": "China",
+        "telephone": ""
+      },
+      "billto": {
+        "email": "",
+        "firstName": "",
+        "lastName": "",
+        "company": "",
+        "address1": "Add 1",
+        "address2": "1-23-456",
+        "city": "",
+        "state": "",
+        "postal": "",
+        "country": "",
+        "telephone": ""
+      },
+      "sameBillto": "false"
     }
-  }
+  },
+  "2": {
+    "email": "jiah@yeah.net",
+    "passwordHash": "123456",
+    "userName": "HenryJia",
+    "id": 2,
+    "profile": {
+      "firstName": "Henry",
+      "lastName": "Jia"
+    }
+  },
+  "3": {
+    "email": "tester@123.com",
+    "passwordHash": "123456",
+    "userName": "Tester",
+    "id": 3,
+    "contact": {
+      "shipto": {
+        "firstName": "Demo",
+        "lastName": "User",
+        "company": "",
+        "address1": "",
+        "address2": "",
+        "city": "",
+        "state": "CA",
+        "postal": "",
+        "country": "USA",
+        "telephone": ""
+      },
+      "billto": {
+        "email": "tester2@abc.com",
+        "firstName": "Tester",
+        "lastName": "User",
+        "company": "",
+        "address1": "",
+        "address2": "",
+        "city": "Bill-City",
+        "state": "",
+        "postal": "",
+        "country": "",
+        "telephone": ""
+      },
+      "sameBillto": "false"
+    }
+  },
+  "__id": 3
 }

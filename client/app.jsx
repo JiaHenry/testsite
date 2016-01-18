@@ -37,16 +37,8 @@ const MainContainer = React.createClass({
      
     return (
       <div className="container">
-        <nav className="navbar navbar-default">
-          <div className="navbar-header">
-            <a className="navbar-brand" href="/">Home</a>
-          </div>
-          {this.headerItems()}
-        </nav>
-        <div>
         <div>
            {this.props.children}
-        </div>
         </div>
       </div>
     );

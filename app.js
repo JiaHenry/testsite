@@ -13,8 +13,11 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 
 app.use(express.static(path.join(__dirname, 'client', 'public')));
 
+app.post('/checkEmail', api.checkEmail);
 app.post('/userLogin', api.userLogin);
 app.post('/createUser', api.createUser);
+app.post('/getProfile', api.getProfile);
+app.post('/updateContact', api.updateContact);
 app.post('/getProfile', api.getProfile);
 app.post('/updateProfile', api.updateProfile);
 app.post('/getUser', api.getUserInfo);
@@ -23,4 +26,4 @@ app.get('*', function (request, response){
   response.sendFile(path.resolve(__dirname, 'client/public', 'index.html'))
 })
 
-app.listen(9000, () => console.log("Server started. Ready go."));
+app.listen(8080, () => console.log("Server started. Ready go."));

@@ -3,8 +3,14 @@ import Auth from '../services/AuthService'
 
 export default class Login extends React.Component {
 
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
+   
+    const { history } = this.props;
+    
+    console.log("login-cc history", history);
+    
+    this.email = history.email;
   }
 
   login(e) {
@@ -12,7 +18,7 @@ export default class Login extends React.Component {
     
     let self = this;
     
-    Auth.login(this.refs.email.value, this.refs.password.value, (error) => {
+    Auth.login(this.email, this.refs.password.value, (error, data) => {
       if(error) {
         return self.setState({error: error});
       } 
@@ -21,16 +27,16 @@ export default class Login extends React.Component {
       
       const { location, history } = self.props
 
-      console.log("login done, start nav ...", location);
+      console.log("email check done, start nav ...");
       
       if (location.state && location.state.nextPathname) {
         console.log("login nav", location.state.nextPathname);
         //self.context.router.replace(location.state.nextPathname)
         history.pushState(null, location.state.nextPathname);
       } else {
-        console.log("login nav to home");
+        console.log("login nav to profile");
         //self.context.router.replace('/')
-        history.pushState(null, '/');
+        history.pushState(null, '/profile');
       }
     });
     /*
@@ -44,12 +50,8 @@ export default class Login extends React.Component {
   render() {
     return (
       <div className="login jumbotron center-block">
-        <h1>Login</h1>
+        <h4>Account Login</h4>
         <form role="form">
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input type="text" className="form-control" id="email"  ref="email" placeholder="Username" />
-        </div>
         <div className="form-group">
           <label htmlFor="password">Password</label>
           <input type="password" className="form-control" id="password" ref="password" placeholder="Password" />
