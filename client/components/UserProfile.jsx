@@ -8,7 +8,7 @@ export default //AuthenticatedComponent(
   constructor(props) {
     super(props);
   
-    this.state = {billto: {same: true}};
+    this.state = {sameBillto: true, billto: {}, shipto: {}};
     this.updateContact = this.updateContact.bind(this);
     this.toggleBillto = this.toggleBillto.bind(this);
     this.handleUpdate = this.handleUpdate.bind(this);
@@ -16,10 +16,16 @@ export default //AuthenticatedComponent(
   }
 
 componentWillMount() {
+    console.log("profile: cwm");
   Auth.getProfile((data) => {
       this.setState(data);
     });
 }
+
+componentWillReceiveProps(newProps) {
+    //this.state = newProps.data || {};
+    console.log("profile: cwrp", newProps);
+  }
 
   toggleBillto(e) {
     this.setState({status: ""});
@@ -46,10 +52,14 @@ componentWillMount() {
         billto = this.refs.billto,
         data = {shipto: {}, sameBillto: sameBillto, billto: {} };
         
-        this.getContatctInfo(shipto.refs, data.shipto);    
+        console.log('contact id info:', this.state.shipto.id, this.state.billto.id);
+        
+        this.getContatctInfo(shipto.refs, data.shipto);
+        data.shipto.id = this.state.shipto && this.state.shipto.id;    
         
         if(!sameBillto) {
           this.getContatctInfo(billto.refs, data.billto);
+          data.billto.id = this.state.billto && this.state.billto.id;
         }
         
         console.log("contact for update", data);
@@ -139,12 +149,8 @@ class ContactInformation extends React.Component {
           <input type="text" className="form-control" ref="company" name="company" placeholder="Company"  value={this.state.company} onChange={this.onDataInput} />
           </div>
           <div className="form-group">
-          <label htmlFor="address1">Address 1</label>
-          <input type="text" className="form-control" ref="address1" name="address1" placeholder="Address 1"  value={this.state.address1} onChange={this.onDataInput} />
-          </div>
-          <div className="form-group">
-          <label htmlFor="address2">Address 2</label>
-          <input type="text" className="form-control" ref="address2" name="address2" placeholder="Address 2"  value={this.state.address2} onChange={this.onDataInput} />
+          <label htmlFor="address">Address</label>
+          <input type="text" className="form-control" ref="address" name="address" placeholder="Address"  value={this.state.address} onChange={this.onDataInput} />
           </div>
           <div className="form-group">
           <label htmlFor="city">City</label>

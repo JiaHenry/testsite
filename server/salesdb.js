@@ -1,6 +1,7 @@
 import Sequelize from "sequelize";
-import _ from "lodash";
-import Faker from "faker";
+//import _ from "lodash";
+//import Faker from "faker";
+import { connectionString } from './dbconfig';
 
 'use strict';
 
@@ -9,7 +10,8 @@ import Faker from "faker";
 // CREATE SCHEMA sales;
 // ALTER SCHEMA sales OWNER TO hive;
 // SalesDB ect to hive database as user hive password H!veSqlAdm!n
-const SalesDB = new Sequelize(
+const SalesDB = new Sequelize(connectionString);
+/*
     'hivedb',
     'hive',
     'H!veSqlAdm!n',
@@ -20,6 +22,7 @@ const SalesDB = new Sequelize(
         dialect: 'postgres'
     }
 );
+*/
 
 const Pricing = SalesDB.define(
     'pricing',
@@ -121,7 +124,7 @@ const Contact = SalesDB.define(
     {
         id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
         espresso_cid: {type: Sequelize.INTEGER},
-        email: {type: Sequelize.TEXT, allowNull: false, unique: true},
+        email: {type: Sequelize.TEXT, allowNull: false, unique: true, validate: {isEmail: true}},
         first: {type: Sequelize.TEXT},
         last: {type: Sequelize.TEXT},
         address: {type: Sequelize.TEXT},
@@ -321,53 +324,103 @@ const DateKey = SalesDB.define(
     }
 );
 
-Account.hasOne(Account, {foreignKey: 'parent_id'});
+// each relationship creates additional association functions for each type.
+Account.belongsTo(Account, {foreignKey: 'parent_id', as: 'ParentAccount'});
+// Account.getParentAccount()
+Account.hasMany(Account, {foreignKey: 'parent_id', as: 'ChildAccount'});
+// Account.getChildAccounts()
 
 Order.hasMany(OrderItem, {foreignKey: 'order_id'});
+// Order.getOrderItems()
+OrderItem.belongsTo(Order, {foreignKey: 'order_id'});
+// OrderItem.getOrder()
+
 Product.hasMany(OrderItem, {foreignKey: 'product_id'});
+// Product.getOrderItems()
+OrderItem.belongsTo(Product, {foreignKey: 'product_id'});
+// OrderItem.getProduct()
+
 Promotion.hasMany(OrderItem, {foreignKey: 'promo_code'});
+// Promotion.getOrderItems()
+OrderItem.belongsTo(Promotion, {foreignKey: 'promo_code'});
+// OrderItem.getPromotion()
+
 Currency.hasMany(OrderItem, {foreignKey: 'currency_code'});
+// Currency.getOrderItems()
+OrderItem.belongsTo(Currency, {foreignKey: 'currency_code'});
+// OrderItem.getCurrency()
 
 Maintenance.belongsTo(Product, {foreignKey: 'product_id'});
 Maintenance.belongsTo(ProductKey, {foreignKey: 'product_key'});
 Maintenance.belongsTo(Order, {foreignKey: 'order_id'});
 
 Product.hasMany(ProductKey, {foreignKey: 'product_id'});
-Order.hasMany(ProductKey, {foreignKey: 'order_id'});
-Order.hasMany(ProductKey, {foreignKey: 'upgrade_order_id'});
+// Product.getProductKeys()
+ProductKey.belongsTo(Product, {foreignKey: 'product_id'});
+// ProductKey.getProduct()
 
-// Product.hasMany(Product, {foreignKey: 'base_product_id'});
+Order.hasMany(ProductKey, {foreignKey: 'order_id'});
+// Order.getProductKeys()
+ProductKey.belongsTo(Order, {foreignKey: 'order_id'});
+// ProductKey.getOrder()
+Order.hasMany(ProductKey, {foreignKey: 'upgrade_order_id', as: 'UpgradeKey'});
+// Order.getUpgradeKeys()
+ProductKey.belongsTo(Order, {foreignKey: 'upgrade_order_id', as: 'UpgradeOrder'});
+// ProductKey.getUpgradeOrder()
+
+Product.belongsTo(Product, {foreignKey: 'base_product_id', as: 'BaseProduct'});
+// Product.getBaseProduct()
+
 Currency.hasMany(Product, {foreignKey: 'currency_code'});
+Product.belongsTo(Currency, {foreignKey: 'currency_code'});
 
 Contact.hasMany(Order, {foreignKey: 'billto_id'});
+Order.belongsTo(Contact, {foreignKey: 'billto_id'});
+
 Contact.hasMany(Order, {foreignKey: 'shipto_id'});
+
 Promotion.hasMany(Order, {foreignKey: 'promo_code'});
+Order.belongsTo(Promotion, {foreignKey: 'promo_code'});
 Currency.hasMany(Order, {foreignKey: 'currency_code'});
+Order.belongsTo(Currency, {foreignKey: 'currency_code'});
 
 Account.hasMany(Contact, {foreignKey: 'account_id'});
+Contact.belongsTo(Account, {foreignKey: 'account_id'});
+
 Country.hasMany(Contact, {foreignKey: 'country_iso'});
+// Country.getContact()
+Contact.belongsTo(Country, {foreignKey: 'country_iso'});
+// Contact.getCountry()
+
 Pricing.hasMany(Contact, {foreignKey: 'price_scenario'});
-Contact.hasOne(Contact, {foreignKey: 'billto_id'});
+// Pricing.getContacts()
+Contact.belongsTo(Pricing, {foreignKey: 'price_scenario'});
+// Contact.getPricing()
+
+Contact.belongsTo(Contact, {foreignKey: 'billto_id'});
+// Contact.getBillTo()
+
 CustomerSource.hasMany(Contact, {foreignKey: 'source_id'});
+Contact.belongsTo(CustomerSource, {foreignKey: 'source_id'});
 
 
 // create database tables if they do not exist.
 // the database and schema have to be created beforehand.
 SalesDB.sync().then(() => {
     // based on annual budget planning rate
-     Currency.create({code: 'USD', to_usd: 1.0, to_jpy: 125.0}).then(function(task) {task.save();});
-     Currency.create({code: 'JPY', to_usd: 0.008, to_jpy: 1.0}).then(function(task) {task.save();});
-     Currency.create({code: 'INR', to_usd: 0.01576, to_jpy: 1.97}).then(function(task) {task.save();});
-     Currency.create({code: 'KRW', to_usd: 0.0009, to_jpy: 0.113}).then(function(task) {task.save();});
-     Currency.create({code: 'CNY', to_usd: 0.16, to_jpy: 20.0}).then(function(task) {task.save();});
-
-     Country.create({iso: 'USA', name: 'United States of America'}).then(function(task) {task.save();});
-     Country.create({iso: 'GBR', name: 'United Kingdom'}).then(function(task) {task.save();});
-     Country.create({iso: 'DEU', name: 'Germany'}).then(function(task) {task.save();});
-     Country.create({iso: 'JPN', name: 'Japan'}).then(function(task) {task.save();});
-     Country.create({iso: 'CHN', name: 'China'}).then(function(task) {task.save();});
-     Country.create({iso: 'KOR', name: 'Korea, Republic of'}).then(function(task) {task.save();});
-     Country.create({iso: 'IND', name: 'India'}).then(function(task) {task.save();});
+    // Currency.create({code: 'USD', to_usd: 1.0, to_jpy: 125.0}).then(function(task) {task.save();});
+    // Currency.create({code: 'JPY', to_usd: 0.008, to_jpy: 1.0}).then(function(task) {task.save();});
+    // Currency.create({code: 'INR', to_usd: 0.01576, to_jpy: 1.97}).then(function(task) {task.save();});
+    // Currency.create({code: 'KRW', to_usd: 0.0009, to_jpy: 0.113}).then(function(task) {task.save();});
+    // Currency.create({code: 'CNY', to_usd: 0.16, to_jpy: 20.0}).then(function(task) {task.save();});
+    //
+    // Country.create({iso: 'USA', name: 'United States of America'}).then(function(task) {task.save();});
+    // Country.create({iso: 'GBR', name: 'United Kingdom'}).then(function(task) {task.save();});
+    // Country.create({iso: 'DEU', name: 'Germany'}).then(function(task) {task.save();});
+    // Country.create({iso: 'JPN', name: 'Japan'}).then(function(task) {task.save();});
+    // Country.create({iso: 'CHN', name: 'China'}).then(function(task) {task.save();});
+    // Country.create({iso: 'KOR', name: 'Korea, Republic of'}).then(function(task) {task.save();});
+    // Country.create({iso: 'IND', name: 'India'}).then(function(task) {task.save();});
 
     console.log("done!");
 });

@@ -11,11 +11,13 @@ import {
 } from 'graphql';
 import SalesDB from './salesdb';
 
+const contactModel = SalesDB.models.contact;
+
 'use strict';
 
 const Country = new GraphQLObjectType({
     name: 'country',
-    description: 'Represents an offical country code and name',
+    description: 'Represents an official country code and name',
     fields: () => {
         return {
             iso: { type: GraphQLID, resolve(country) { return country.iso; } },
@@ -83,7 +85,9 @@ const Product = new GraphQLObjectType({
             currency_code: {type: new GraphQLNonNull(GraphQLString), resolve(product) {return product.currency_code;}},
             start_date: {type: GraphQLString, resolve(product) {return product.start_date;}},
             end_date: {type: GraphQLString, resolve(product) {return product.end_date;}},
-            notes: {type: GraphQLString, resolve(product) {return product.notes;}}
+            notes: {type: GraphQLString, resolve(product) {return product.notes;}},
+            // linked tables
+            productKeys: {type: new GraphQLList(ProductKey), resolve(product) {return product.getProductKeys; }}
         }
     }
 });
@@ -100,7 +104,9 @@ const ProductKey = new GraphQLObjectType({
         revoked: {type: GraphQLBoolean, resolve(product_key) {return product_key.revoked; }},
         upgrade_order_id: {type: GraphQLInt, resolve(product_key) {return product_key.upgrade_order_id; }},
         notes: {type: GraphQLString, resolve(product_key) {return product_key.notes; }},
-        locality: {type: GraphQLString, resolve(product_key) {return product_key.locality; }}
+        locality: {type: GraphQLString, resolve(product_key) {return product_key.locality; }},
+        product: {type: Product, resolve(product_key) {return product_key.getProduct();}},
+        order: {type: Order, resolve(product_key) {return product_key.getOrder();}}
     }}
 });
 
@@ -110,11 +116,14 @@ const Maintenance = new GraphQLObjectType({
     fields: () => { return {
         id: {type: GraphQLID, resolve(maintenance) {return maintenance.id; }},
         product_id: {type: GraphQLInt, resolve(maintenance) {return maintenance.product_id; }},
-        product_key: {type: GraphQLString, resolve(maintenance) {return maintenance.product_key; }},
+        // product_key: {type: GraphQLString, resolve(maintenance) {return maintenance.product_key; }},
         start_date: {type: GraphQLString, resolve(maintenance) {return maintenance.start_date; }},
         end_date: {type: GraphQLString, resolve(maintenance) {return maintenance.end_date; }},
         order_id: {type: GraphQLInt, resolve(maintenance) {return maintenance.order_id; }},
-        locality: {type: GraphQLString, resolve(maintenance) {return maintenance.locality; }}
+        locality: {type: GraphQLString, resolve(maintenance) {return maintenance.locality; }},
+        product: {type: Product, resolve(maintenance) {return maintenance.getProduct();}},
+        order: {type: Order, resolve(maintenance) {return maintenance.getOrder();}},
+        product_key: {type: ProductKey, resolve(maintenance) {return maintenance.getProductKey();}}
     }}
 });
 
@@ -129,7 +138,8 @@ const Account = new GraphQLObjectType({
             credit_status: {type: GraphQLString, resolve(account) {return account.credit_status; }},
             parent_id: {type: GraphQLInt, resolve(account) {return account.parent_id; }},
             locality: {type: GraphQLString, resolve(account) {return account.locality; }},
-            notes: {type: GraphQLString, resolve(account) {return account.notes; }}
+            notes: {type: GraphQLString, resolve(account) {return account.notes; }},
+            main_contact: {type: Contact, resolve(account) {return account.getContact();} }
         }
     }
 });
@@ -146,6 +156,7 @@ const Contact = new GraphQLObjectType({
             last: { type: GraphQLString, resolve(contact) { return contact.last; }},
             email: { type: GraphQLString, resolve(contact) { return contact.email; }},
             address: { type: GraphQLString, resolve(contact) { return contact.address; }},
+            company: { type: GraphQLString, resolve(contact) { return contact.company; }},
             city: { type: GraphQLString, resolve(contact) { return contact.city; }},
             region: {type: GraphQLString, resolve(contact) {return contact.region; }},
             postal_code: {type: GraphQLString, resolve(contact) {return contact.postal_code; }},
@@ -156,7 +167,9 @@ const Contact = new GraphQLObjectType({
             notes: { type: GraphQLString, resolve(contact) { return contact.notes; }},
             price_scenario: {type: GraphQLString, resolve(contact) {return contact.price_scenario; }},
             billto_id: { type: GraphQLInt, resolve(contact) { return contact.billto_id; }},
-            source_id: { type: GraphQLInt, resolve(contact) { return contact.source_id; }}
+            source_id: { type: GraphQLInt, resolve(contact) { return contact.source_id; }},
+            country: {type: Country, resolve(contact) {return contact.getCountry();}}
+            // account: {type: Account, resolve(contact) {return contact.getAccount();}}
         }
     }
 });
@@ -309,10 +322,39 @@ const SalesQuery = new GraphQLObjectType({
                     region: {type: GraphQLString},
                     telephone: {type: GraphQLString},
                     locality: {type: GraphQLString},
-                    espresso_cid: {type: GraphQLInt}
+                    espresso_cid: {type: GraphQLInt},
+                    withBillto: {type: GraphQLBoolean}
                 },
                 resolve(root, args) {
-                    return SalesDB.models.contact.findAll({where: args});
+                    if (args.withBillto && args.email) {
+                        let result = [];
+
+                        let contact = contactModel.findOne({ where: { email: args.email } });
+                        if (contact) {
+                            result.push(contact);
+
+                            let billto_id = contact.billto_id;
+
+                            if (billto_id) {
+                                let billto = contactModel.findById(billto_id); //.then((billto) => {
+                                result.push(billto);
+                                
+                                console.log("get Contacts result w/ bill to", result); 
+                                return result;
+                            }
+                        
+                        console.log("get Contacts result primay only", result);
+                            
+                            return result;
+                        }
+                        
+                        console.log("get Contacts result, no record?!", result);
+
+                        return result;
+                    } else {
+                        console.log("get Contacts findAll");
+                        return contactModel.findAll({ where: args });
+                    }
                 }
             },
             accounts: {
@@ -346,17 +388,137 @@ const SalesQuery = new GraphQLObjectType({
     }
 });
 
+function createContact(args) {
+  return contactModel.create({
+                        first: args.first,
+                        last: args.last,
+                        email: args.email.toLowerCase(),
+                        address: args.address,
+                        city: args.city,
+                        region: args.region,
+                        postal_code: args.postal_code,
+                        country_iso: args.country_iso,
+                        telephone: args.telephone,
+                        type: args.type,
+                        locality: args.locality,
+                        notes: args.notes,
+                        price_scenario: args.price_scenario,
+                        billto_id: args.billto_id,
+                        source_id: args.source_id
+                    });
+}
+
+function updateContact(contact, args) {
+    contact.update({
+                        first: args.first,
+                        last: args.last,
+                        //email: args.email.toLowerCase(),
+                        address: args.address,
+                        city: args.city,
+                        region: args.region,
+                        postal_code: args.postal_code,
+                        country_iso: args.country_iso,
+                        telephone: args.telephone,
+                        type: args.type,
+                        locality: args.locality,
+                        notes: args.notes,
+                        price_scenario: args.price_scenario,
+                        billto_id: args.billto_id,
+                        source_id: args.source_id
+                    });
+}
+
 const SalesMutation = new GraphQLObjectType({
     name: 'SalesMutation',
     description: 'calls to modify the database',
-    fields: () => {
-
+    fields() {
+        return {
+            addContact: {
+                type: Contact,
+                args: {
+                    first: { type: GraphQLString},
+                    last: { type: GraphQLString},
+                    email: { type: new GraphQLNonNull(GraphQLString)},
+                    company: { type: GraphQLString},
+                    address: { type: GraphQLString},
+                    city: { type: GraphQLString},
+                    region: {type: GraphQLString},
+                    postal_code: {type: GraphQLString},
+                    country_iso: {type: GraphQLString},
+                    telephone: { type: GraphQLString},
+                    type: {type: GraphQLString},
+                    locality: {type: GraphQLString},
+                    notes: { type: GraphQLString},
+                    price_scenario: {type: GraphQLString},
+                    billto_id: { type: GraphQLInt},
+                    source_id: { type: GraphQLInt}
+                },
+                resolve(_, args) {
+                  return createContact(args);   
+                }
+            },
+            updateContact: {
+                type: Contact,
+                args: {
+                    first: { type: GraphQLString},
+                    last: { type: GraphQLString},
+                    email: { type: new GraphQLNonNull(GraphQLString)},
+                    company: { type: GraphQLString},
+                    address: { type: GraphQLString},
+                    city: { type: GraphQLString},
+                    region: {type: GraphQLString},
+                    postal_code: {type: GraphQLString},
+                    country_iso: {type: GraphQLString},
+                    telephone: { type: GraphQLString},
+                    type: {type: GraphQLString},
+                    locality: {type: GraphQLString},
+                    notes: { type: GraphQLString},
+                    price_scenario: {type: GraphQLString},
+                    id: {type: GraphQLID},
+                    billto_id: { type: GraphQLInt},
+                    source_id: { type: GraphQLInt}
+                },
+                resolve(_, args) {
+                    if (args.id) {
+                        contactModel.findById(args.id).then((contact) => {
+                            if (!contact)  {
+                                contact = createContact(args);
+                            } else {
+                                updateContact(contact, args);
+                            }    
+                            
+                            return contact;                        
+                        });
+                    }
+                    
+                    return null;
+                }
+            },
+            removeContact: {
+                type: Contact,
+                args: {
+                    id: {type: GraphQLID}
+                },
+                resolve(_, {id}) {
+                    if (id) {
+                        contactModel.findById(id).then((contact) => {
+                            if (contact) {
+                                contact.destory();
+                                return contact;
+                            } 
+                        });
+                    }
+                    
+                    return null;
+                }
+            }
+        }
     }
 });
 
 const SalesSchema = new GraphQLSchema({
     query: SalesQuery
-    // , mutation: Mutation
+    , mutation: SalesMutation
 });
 
 export default SalesSchema;

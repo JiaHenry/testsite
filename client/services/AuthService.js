@@ -95,7 +95,7 @@ class AuthService {
   }
   
   updateContact(contact, cb) {
-    let id = LocalStore.user.id;
+    let email = LocalStore.user.email;
 
     console.log('service.updateContact', contact);
     
@@ -105,7 +105,7 @@ class AuthService {
       crossOrigin: true,
       type: 'json',
       data: {
-        id, contacts: contact
+        email, contacts: contact
       }
     })
     .then((response) => {
@@ -114,9 +114,9 @@ class AuthService {
   }
 
   getProfile(cb) {
-    let id = LocalStore.user && LocalStore.user.id;
+    let email = LocalStore.user && LocalStore.user.email;
 
-    if (id == null) {
+    if (email == null) {
       cb({});
     } else {
 
@@ -126,7 +126,7 @@ class AuthService {
         crossOrigin: true,
         type: 'json',
         data: {
-          id, fields: [
+          email, fields: [
             'shipto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone} ', 
             'billto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone, email}',
             'sameBillto']

@@ -4,12 +4,14 @@ import { Router, Route, RouteHandler, Link } from 'react-router';
 import { IndexRoute } from 'react-router';
 import { Redirect } from 'react-router';
 import createBrowserHistory from 'history/lib/createBrowserHistory';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import Home from './components/Home';
-import UserProfile from './components/UserProfile';
+import Login from './components/Login.jsx';
+import Signup from './components/Signup.jsx';
+import Home from './components/Home.jsx';
+import UserProfile from './components/UserProfile.jsx';
 import Auth from './services/AuthService';
 import LocalStore from './LocalStore';
+
+//import '../index.css';
 
 const MainContainer = React.createClass({
   getInitialState() {
