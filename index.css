@@ -1,1 +1,11 @@
 @import 'bootstrap';
+
+.columns-2 {
+ width: 50%;
+ display: inline-block;
+ padding-right: 20px; 
+}
+
+.columns-2-right {
+  float: right;
+}

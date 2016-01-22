@@ -120,27 +120,9 @@ var MainContainer = _react2.default.createClass({
       'div',
       { className: 'container' },
       _react2.default.createElement(
-        'nav',
-        { className: 'navbar navbar-default' },
-        _react2.default.createElement(
-          'div',
-          { className: 'navbar-header' },
-          _react2.default.createElement(
-            'a',
-            { className: 'navbar-brand', href: '/' },
-            'Home'
-          )
-        ),
-        this.headerItems()
-      ),
-      _react2.default.createElement(
         'div',
         null,
-        _react2.default.createElement(
-          'div',
-          null,
-          this.props.children
-        )
+        this.props.children
       )
     );
   },
@@ -390,6 +372,10 @@ var _LocalStore = require('../LocalStore');
 
 var _LocalStore2 = _interopRequireDefault(_LocalStore);
 
+var _AuthService = require('../services/AuthService');
+
+var _AuthService2 = _interopRequireDefault(_AuthService);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -397,40 +383,91 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-//import AuthenticatedComponent from './AuthenticatedComponent';
-
-//AuthenticatedComponent(
 
 var Home = (function (_React$Component) {
   _inherits(Home, _React$Component);
 
-  function Home() {
+  function Home(props) {
     _classCallCheck(this, Home);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Home).apply(this, arguments));
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Home).call(this, props));
+
+    _this.checkEmail = _this.checkEmail.bind(_this);
+    return _this;
   }
 
   _createClass(Home, [{
+    key: 'checkEmail',
+    value: function checkEmail(e) {
+      var _this2 = this;
+
+      e.preventDefault();
+
+      var email = this.refs.email.value;
+      _AuthService2.default.checkEmail(email, function (error, data) {
+        if (error) {
+          return _this2.setState({ error: error });
+        }
+
+        _this2.setState({ error: null });
+
+        var history = _this2.props.history;
+
+        history.email = email;
+
+        if (data.id == null) {
+          history.pushState(null, '/signup');
+        } else {
+          history.pushState(null, '/login');
+        }
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
-      var user = _LocalStore2.default.user;
-
       return _react2.default.createElement(
-        'h1',
-        null,
-        'Hello ',
-        user ? user.email : ''
+        'div',
+        { className: 'login jumbotron center-block' },
+        _react2.default.createElement(
+          'h4',
+          null,
+          'Enter Your Email to Get Started'
+        ),
+        _react2.default.createElement(
+          'form',
+          { role: 'form' },
+          _react2.default.createElement(
+            'div',
+            { className: 'form-group' },
+            _react2.default.createElement(
+              'label',
+              { htmlFor: 'email' },
+              'Email'
+            ),
+            _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'email', placeholder: 'email' })
+          ),
+          _react2.default.createElement(
+            'button',
+            { type: 'submit', className: 'btn btn-default', onClick: this.checkEmail },
+            'Submit'
+          ),
+          _react2.default.createElement('br', null),
+          _react2.default.createElement(
+            'span',
+            { className: 'label label-danger' },
+            this.state && this.state.error
+          )
+        )
       );
     }
   }]);
 
   return Home;
 })(_react2.default.Component);
-//);
 
 exports.default = Home;
 
-},{"../LocalStore":1,"react":213}],4:[function(require,module,exports){
+},{"../LocalStore":1,"../services/AuthService":8,"react":213}],4:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -458,10 +495,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Login = (function (_React$Component) {
   _inherits(Login, _React$Component);
 
-  function Login() {
+  function Login(props) {
     _classCallCheck(this, Login);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Login).call(this));
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Login).call(this, props));
+
+    var history = _this.props.history;
+
+    console.log("login-cc history", history);
+
+    _this.email = history.email;
+    return _this;
   }
 
   _createClass(Login, [{
@@ -471,7 +515,7 @@ var Login = (function (_React$Component) {
 
       var self = this;
 
-      _AuthService2.default.login(this.refs.email.value, this.refs.password.value, function (error) {
+      _AuthService2.default.login(this.email, this.refs.password.value, function (error, data) {
         if (error) {
           return self.setState({ error: error });
         }
@@ -482,16 +526,16 @@ var Login = (function (_React$Component) {
         var location = _self$props.location;
         var history = _self$props.history;
 
-        console.log("login done, start nav ...", location);
+        console.log("email check done, start nav ...");
 
         if (location.state && location.state.nextPathname) {
           console.log("login nav", location.state.nextPathname);
           //self.context.router.replace(location.state.nextPathname)
           history.pushState(null, location.state.nextPathname);
         } else {
-          console.log("login nav to home");
+          console.log("login nav to profile");
           //self.context.router.replace('/')
-          history.pushState(null, '/');
+          history.pushState(null, '/profile');
         }
       });
       /*
@@ -508,23 +552,13 @@ var Login = (function (_React$Component) {
         'div',
         { className: 'login jumbotron center-block' },
         _react2.default.createElement(
-          'h1',
+          'h4',
           null,
-          'Login'
+          'Account Login'
         ),
         _react2.default.createElement(
           'form',
           { role: 'form' },
-          _react2.default.createElement(
-            'div',
-            { className: 'form-group' },
-            _react2.default.createElement(
-              'label',
-              { htmlFor: 'email' },
-              'Email'
-            ),
-            _react2.default.createElement('input', { type: 'text', className: 'form-control', id: 'email', ref: 'email', placeholder: 'Username' })
-          ),
           _react2.default.createElement(
             'div',
             { className: 'form-group' },
@@ -584,19 +618,45 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Signup = (function (_React$Component) {
   _inherits(Signup, _React$Component);
 
-  function Signup() {
+  function Signup(props) {
     _classCallCheck(this, Signup);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Signup).call(this));
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Signup).call(this, props));
+
+    var history = _this.props.history;
+
+    console.log("signup-cc history", history);
+
+    _this.email = history.email;
+
+    _this.signup = _this.signup.bind(_this);
+    return _this;
   }
 
   _createClass(Signup, [{
     key: 'signup',
     value: function signup(e) {
+      var _this2 = this;
+
       e.preventDefault();
-      _AuthService2.default.signup(this.refs.email.value, this.refs.password.value, { firstName: this.refs.firstName.value, lastName: this.refs.lastName.value }).catch(function (err) {
-        alert("There's an error signup");
-        console.log("Error signup", err);
+
+      this.setState({ error: null });
+
+      var password = this.refs.password.value,
+          password2 = this.refs.confirmpassword.value;
+
+      if (password !== password2) {
+        return this.setState({ error: 'Password mismatch' });
+      }
+
+      _AuthService2.default.signup(this.email, password, { username: this.refs.username.value }, function (error, data) {
+        if (error) {
+          return _this2.setState({ error: error });
+        }
+
+        var history = _this2.props.history;
+
+        history.pushState(null, '/profile');
       });
     }
   }, {
@@ -606,9 +666,9 @@ var Signup = (function (_React$Component) {
         'div',
         { className: 'login jumbotron center-block' },
         _react2.default.createElement(
-          'h1',
+          'h4',
           null,
-          'Signup'
+          'Create Account'
         ),
         _react2.default.createElement(
           'form',
@@ -618,10 +678,10 @@ var Signup = (function (_React$Component) {
             { className: 'form-group' },
             _react2.default.createElement(
               'label',
-              { htmlFor: 'email' },
-              'Email'
+              { htmlFor: 'username' },
+              'Username'
             ),
-            _react2.default.createElement('input', { type: 'text', className: 'form-control', id: 'email', ref: 'email', placeholder: 'email' })
+            _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'username', placeholder: 'Username' })
           ),
           _react2.default.createElement(
             'div',
@@ -631,32 +691,27 @@ var Signup = (function (_React$Component) {
               { htmlFor: 'password' },
               'Password'
             ),
-            _react2.default.createElement('input', { type: 'password', className: 'form-control', id: 'password', ref: 'password', placeholder: 'Password' })
+            _react2.default.createElement('input', { type: 'password', className: 'form-control', ref: 'password', placeholder: 'Password' })
           ),
           _react2.default.createElement(
             'div',
             { className: 'form-group' },
             _react2.default.createElement(
               'label',
-              { htmlFor: 'firstName' },
-              'First Name'
+              { htmlFor: 'confirmpassword' },
+              'Confirm Password'
             ),
-            _react2.default.createElement('input', { type: 'text', className: 'form-control', id: 'firstName', ref: 'firstName', placeholder: 'First Name' })
-          ),
-          _react2.default.createElement(
-            'div',
-            { className: 'form-group' },
-            _react2.default.createElement(
-              'label',
-              { htmlFor: 'lastName' },
-              'Last Name'
-            ),
-            _react2.default.createElement('input', { type: 'text', className: 'form-control', id: 'lastName', ref: 'lastName', placeholder: 'Last Name' })
+            _react2.default.createElement('input', { type: 'password', className: 'form-control', ref: 'confirmpassword', placeholder: 'Retype Password' })
           ),
           _react2.default.createElement(
             'button',
-            { type: 'submit', className: 'btn btn-default', onClick: this.signup.bind(this) },
+            { type: 'submit', className: 'btn btn-default', onClick: this.signup },
             'Submit'
+          ),
+          _react2.default.createElement(
+            'span',
+            { className: 'label label-danger' },
+            this.state && this.state.error
           )
         )
       );
@@ -707,9 +762,10 @@ var UserProfile = (function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UserProfile).call(this, props));
 
-    _this.state = { firstName: '', lastName: '' };
-    _this.editProfile = _this.editProfile.bind(_this);
-    _this.onDataEdit = _this.onDataEdit.bind(_this);
+    _this.state = { billto: { same: true } };
+    _this.updateContact = _this.updateContact.bind(_this);
+    _this.toggleBillto = _this.toggleBillto.bind(_this);
+    _this.handleUpdate = _this.handleUpdate.bind(_this);
     _this.dirty = false;
     return _this;
   }
@@ -720,26 +776,58 @@ var UserProfile = (function (_React$Component) {
       var _this2 = this;
 
       _AuthService2.default.getProfile(function (data) {
-        _this2.setState({
-          firstName: data.firstName || '',
-          lastName: data.lastName || ''
-        });
+        _this2.setState(data);
       });
     }
   }, {
-    key: 'editProfile',
-    value: function editProfile(e) {
-      e.preventDefault();
-      _AuthService2.default.updateProfile({
-        firstName: this.refs.firstName.value,
-        lastName: this.refs.lastName.value });
-      this.dirty = false;
+    key: 'toggleBillto',
+    value: function toggleBillto(e) {
+      this.setState({ status: "" });
+      this.setState({ sameBillto: !this.state.sameBillto });
     }
   }, {
-    key: 'onDataEdit',
-    value: function onDataEdit(e) {
-      this.setState(_defineProperty({}, e.target.name, e.target.value));
-      this.dirty = true;
+    key: 'handleUpdate',
+    value: function handleUpdate(name, data) {
+      this.setState({ status: "" });
+      var contact = this.state[name];
+      for (var key in data) {
+        contact[key] = data[key];
+      }
+      this.setState(this.state);
+    }
+  }, {
+    key: 'updateContact',
+    value: function updateContact(e) {
+      var _this3 = this;
+
+      e.preventDefault();
+
+      this.setState({ status: "Start update ..." });
+
+      // collect contact information for update
+      var sameBillto = this.refs.sameBillto.checked,
+          shipto = this.refs.shipto,
+          billto = this.refs.billto,
+          data = { shipto: {}, sameBillto: sameBillto, billto: {} };
+
+      this.getContatctInfo(shipto.refs, data.shipto);
+
+      if (!sameBillto) {
+        this.getContatctInfo(billto.refs, data.billto);
+      }
+
+      console.log("contact for update", data);
+
+      _AuthService2.default.updateContact(data, function () {
+        _this3.setState({ status: "Done update" });
+      });
+    }
+  }, {
+    key: 'getContatctInfo',
+    value: function getContatctInfo(src, target) {
+      for (var key in src) {
+        target[key] = src[key].value;
+      }
     }
   }, {
     key: 'render',
@@ -748,37 +836,49 @@ var UserProfile = (function (_React$Component) {
         'div',
         { className: 'login jumbotron center-block' },
         _react2.default.createElement(
-          'h1',
+          'h4',
           null,
-          'Profile'
+          'Contact information'
         ),
         _react2.default.createElement(
           'form',
           { role: 'form' },
           _react2.default.createElement(
             'div',
-            { className: 'form-group' },
+            null,
             _react2.default.createElement(
-              'label',
-              { htmlFor: 'firstName' },
-              'First Name'
+              'div',
+              { className: 'form-group columns-2' },
+              _react2.default.createElement(ContactInformation, { data: this.state.shipto, name: 'shipto', ref: 'shipto', onChange: this.handleUpdate })
             ),
-            _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'firstName', name: 'firstName', placeholder: 'First Name', value: this.state.firstName, onChange: this.onDataEdit })
+            _react2.default.createElement(
+              'div',
+              { className: 'form-group columns-2 columns-2-right' },
+              _react2.default.createElement('input', { type: 'checkbox', checked: this.state.sameBillto, name: 'samebillto', onChange: this.toggleBillto, ref: 'sameBillto' }),
+              ' ',
+              _react2.default.createElement(
+                'label',
+                { htmlFor: 'samebillto' },
+                'Use Same Contact Info'
+              ),
+              this.state.sameBillto ? "" : _react2.default.createElement(ContactInformation, { data: this.state.billto, email: 'true', name: 'billto', ref: 'billto', onChange: this.handleUpdate })
+            )
           ),
+          _react2.default.createElement('br', null),
           _react2.default.createElement(
             'div',
-            { className: 'form-group' },
+            null,
             _react2.default.createElement(
-              'label',
-              { htmlFor: 'lastName' },
-              'Last Name'
-            ),
-            _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'lastName', name: 'lastName', placeholder: 'Last Name', value: this.state.lastName, onChange: this.onDataEdit })
+              'button',
+              { type: 'submit', className: 'btn btn-default', onClick: this.updateContact },
+              'Submit'
+            )
           ),
+          _react2.default.createElement('br', null),
           _react2.default.createElement(
-            'button',
-            { type: 'submit', className: 'btn btn-default', onClick: this.editProfile },
-            'Submit'
+            'span',
+            { className: 'label label-information' },
+            this.state.status
           )
         )
       );
@@ -790,6 +890,157 @@ var UserProfile = (function (_React$Component) {
 //);
 
 exports.default = UserProfile;
+
+var ContactInformation = (function (_React$Component2) {
+  _inherits(ContactInformation, _React$Component2);
+
+  function ContactInformation(props) {
+    _classCallCheck(this, ContactInformation);
+
+    var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(ContactInformation).call(this, props));
+
+    _this4.state = props.data || {};
+    _this4.name = props.name;
+    _this4.onChange = props.onChange;
+    _this4.onDataInput = _this4.onDataInput.bind(_this4);
+
+    return _this4;
+  }
+
+  _createClass(ContactInformation, [{
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(newProps) {
+      this.state = newProps.data || {};
+    }
+  }, {
+    key: 'onDataInput',
+    value: function onDataInput(e) {
+      var data = _defineProperty({}, e.target.name, e.target.value);
+      this.setState(data);
+      this.onChange(this.name, data);
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      return _react2.default.createElement(
+        'div',
+        null,
+        this.props.email ? _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'email' },
+            'Email'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'email', name: 'email', placeholder: 'Email', value: this.state.email, onChange: this.onDataInput })
+        ) : "",
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'firstName' },
+            'First Name'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'firstName', name: 'firstName', placeholder: 'First Name', value: this.state.firstName, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'lastName' },
+            'Last Name'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'lastName', name: 'lastName', placeholder: 'Last Name', value: this.state.lastName, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'company' },
+            'Company'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'company', name: 'company', placeholder: 'Company', value: this.state.company, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'address1' },
+            'Address 1'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'address1', name: 'address1', placeholder: 'Address 1', value: this.state.address1, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'address2' },
+            'Address 2'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'address2', name: 'address2', placeholder: 'Address 2', value: this.state.address2, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'city' },
+            'City'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'city', name: 'city', placeholder: 'City', value: this.state.city, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'state' },
+            'State/Province'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'state', name: 'state', placeholder: 'State/Province', value: this.state.state, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'postal' },
+            'Postal Code'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'postal', name: 'postal', placeholder: 'Postal Code', value: this.state.postal, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'country' },
+            'Country'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'country', name: 'country', placeholder: 'Country', value: this.state.country, onChange: this.onDataInput })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            { htmlFor: 'telephone' },
+            'Telephone'
+          ),
+          _react2.default.createElement('input', { type: 'text', className: 'form-control', ref: 'telephone', name: 'telephone', placeholder: 'Telephone', value: this.state.telephone, onChange: this.onDataInput })
+        )
+      );
+    }
+  }]);
+
+  return ContactInformation;
+})(_react2.default.Component);
 
 },{"../services/AuthService":8,"react":213}],7:[function(require,module,exports){
 'use strict';
@@ -837,6 +1088,30 @@ var AuthService = (function () {
   }
 
   _createClass(AuthService, [{
+    key: 'checkEmail',
+    value: function checkEmail(email, cb) {
+      // TODO, check email local before send to server
+
+      (0, _reqwest2.default)({
+        url: 'checkEmail',
+        method: 'POST',
+        crossOrigin: true,
+        type: 'json',
+        data: {
+          email: email
+        }
+      }).then(function (response) {
+        response = response || {};
+        var error = response.error;
+
+        if (!error) {
+          cb(null, response);
+        } else {
+          cb(error);
+        }
+      });
+    }
+  }, {
     key: 'login',
     value: function login(email, password, cb) {
       var _this = this;
@@ -868,16 +1143,28 @@ var AuthService = (function () {
     }
   }, {
     key: 'signup',
-    value: function signup(email, password, profile) {
+    value: function signup(email, password, extra, cb) {
+      var _this2 = this;
+
       (0, _reqwest2.default)({
         url: _LoginConstants2.default.SIGNUP_URL,
         method: 'POST',
         crossOrigin: true,
         type: 'json',
         data: {
-          email: email, password: password, profile: profile
+          email: email, password: password, extra: extra
         }
-      }).then(this.handleAuth);
+      }).then(function (response) {
+        var error = response.error;
+
+        if (!error) {
+          response.email = email;
+          _this2.handleAuth(response);
+          cb(null);
+        } else {
+          cb(error);
+        }
+      });
     }
   }, {
     key: 'updateProfile',
@@ -897,6 +1184,25 @@ var AuthService = (function () {
       });
     }
   }, {
+    key: 'updateContact',
+    value: function updateContact(contact, cb) {
+      var id = _LocalStore2.default.user.id;
+
+      console.log('service.updateContact', contact);
+
+      (0, _reqwest2.default)({
+        url: "updateContact",
+        method: 'POST',
+        crossOrigin: true,
+        type: 'json',
+        data: {
+          id: id, contacts: contact
+        }
+      }).then(function (response) {
+        cb();
+      });
+    }
+  }, {
     key: 'getProfile',
     value: function getProfile(cb) {
       var id = _LocalStore2.default.user && _LocalStore2.default.user.id;
@@ -911,10 +1217,10 @@ var AuthService = (function () {
           crossOrigin: true,
           type: 'json',
           data: {
-            id: id, fields: ['firstName', 'lastName']
+            id: id, fields: ['shipto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone} ', 'billto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone, email}', 'sameBillto']
           }
         }).then(function (response) {
-          cb(response.profile || {});
+          cb(response || {});
         });
       }
     }
