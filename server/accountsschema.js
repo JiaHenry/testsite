@@ -54,20 +54,6 @@ const AccountsQuery = new GraphQLObjectType({
     }
 });
 
-function getHashString(src) {
-  // TODO, creat hash string for src string 
-  return encode(src);
-}
-
-function encode(str) {
-  return new Buffer(str).toString('base64');
-}
-
-function decode(str) {
-  return new Buffer(str, 'base64').toString('utf8');
-}
-
-
 const AccountsMutation = new GraphQLObjectType({
     name: 'AccountsMutation',
     description: 'calls to modify the database',
@@ -86,7 +72,7 @@ const AccountsMutation = new GraphQLObjectType({
               return AccountsDB.models.users.create({
                 email: args.email.toLowerCase(),
                 display_name: args.username,
-                password_hash: getHashString(args.password),
+                password_hash: args.password,
                 permissions: args.permissions,
                 notes: args.notes
               });
@@ -97,8 +83,8 @@ const AccountsMutation = new GraphQLObjectType({
 });
 
 const AccountsSchema = new GraphQLSchema({
-    query: AccountsQuery
-    , mutation: AccountsMutation
+    query: AccountsQuery,
+    mutation: AccountsMutation
 });
 
 export default AccountsSchema;

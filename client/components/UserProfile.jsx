@@ -17,7 +17,7 @@ export default //AuthenticatedComponent(
 
 componentWillMount() {
     console.log("profile: cwm");
-  Auth.getProfile((data) => {
+  Auth.getContact((data) => {
       this.setState(data);
     });
 }

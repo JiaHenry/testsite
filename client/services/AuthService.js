@@ -77,30 +77,14 @@ class AuthService {
         }
       });
   }
-
-  updateProfile(profile) {
-    let id = LocalStore.user.id;
-
-    console.log('service.updateProfile', profile);
-    
-    request({
-      url: "updateProfile",
-      method: 'POST',
-      crossOrigin: true,
-      type: 'json',
-      data: {
-        id, profile
-      }
-    });
-  }
-  
+ 
   updateContact(contact, cb) {
     let email = LocalStore.user.email;
 
     console.log('service.updateContact', contact);
     
     request({
-      url: "updateContact",
+      url: "updateContacts",
       method: 'POST',
       crossOrigin: true,
       type: 'json',
@@ -113,23 +97,19 @@ class AuthService {
         });
   }
 
-  getProfile(cb) {
+  getContact(cb) {
     let email = LocalStore.user && LocalStore.user.email;
 
     if (email == null) {
       cb({});
     } else {
-
       request({
-        url: "getProfile",
+        url: "getContacts",
         method: 'POST',
         crossOrigin: true,
         type: 'json',
         data: {
-          email, fields: [
-            'shipto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone} ', 
-            'billto {firstName, lastName, company, address1, address2, city, state, postal, country, telephone, email}',
-            'sameBillto']
+          email
         }
       })
         .then((response) => {

@@ -168,7 +168,8 @@ const Contact = new GraphQLObjectType({
             price_scenario: {type: GraphQLString, resolve(contact) {return contact.price_scenario; }},
             billto_id: { type: GraphQLInt, resolve(contact) { return contact.billto_id; }},
             source_id: { type: GraphQLInt, resolve(contact) { return contact.source_id; }},
-            country: {type: Country, resolve(contact) {return contact.getCountry();}}
+            country: {type: Country, resolve(contact) {return contact.getCountry();}},
+            billto: {type: Contact, resolve(contact) { return contact.getContact(); }}
             // account: {type: Account, resolve(contact) {return contact.getAccount();}}
         }
     }
@@ -326,35 +327,7 @@ const SalesQuery = new GraphQLObjectType({
                     withBillto: {type: GraphQLBoolean}
                 },
                 resolve(root, args) {
-                    if (args.withBillto && args.email) {
-                        let result = [];
-
-                        let contact = contactModel.findOne({ where: { email: args.email } });
-                        if (contact) {
-                            result.push(contact);
-
-                            let billto_id = contact.billto_id;
-
-                            if (billto_id) {
-                                let billto = contactModel.findById(billto_id); //.then((billto) => {
-                                result.push(billto);
-                                
-                                console.log("get Contacts result w/ bill to", result); 
-                                return result;
-                            }
-                        
-                        console.log("get Contacts result primay only", result);
-                            
-                            return result;
-                        }
-                        
-                        console.log("get Contacts result, no record?!", result);
-
-                        return result;
-                    } else {
-                        console.log("get Contacts findAll");
-                        return contactModel.findAll({ where: args });
-                    }
+                    return contactModel.findAll({ where: args });
                 }
             },
             accounts: {
@@ -412,7 +385,7 @@ function updateContact(contact, args) {
     contact.update({
                         first: args.first,
                         last: args.last,
-                        //email: args.email.toLowerCase(),
+                        email: args.email.toLowerCase(),
                         address: args.address,
                         city: args.city,
                         region: args.region,
@@ -475,7 +448,7 @@ const SalesMutation = new GraphQLObjectType({
                     notes: { type: GraphQLString},
                     price_scenario: {type: GraphQLString},
                     id: {type: GraphQLID},
-                    billto_id: { type: GraphQLInt},
+                    billto_id: { type: GraphQLID},
                     source_id: { type: GraphQLInt}
                 },
                 resolve(_, args) {
@@ -497,16 +470,35 @@ const SalesMutation = new GraphQLObjectType({
             removeContact: {
                 type: Contact,
                 args: {
-                    id: {type: GraphQLID}
+                    id: {type: GraphQLID},
+                    main_id: {type: GraphQLID}
                 },
-                resolve(_, {id}) {
-                    if (id) {
+                resolve(_, {id, main_id}) {
+                    if (id && main_id) {
+                        contactModel.findById(main_id).then((contact) => {
+                            if (contact) {
+                                contact.update({billto_id: null});
+                            }
+                        });
+                        
                         contactModel.findById(id).then((contact) => {
                             if (contact) {
-                                contact.destory();
+                                contact.destroy();
                                 return contact;
                             } 
                         });
+                        
+                        /*
+                        let querys = [
+                                'DELETE FROM sales.contacts WHERE id = $1;', 
+                                'UPDATE sales.contacts SET billto_id = null WHERE id = $1;'
+                            ],
+                            ids = [id,main_id];
+                        
+                        querys.forEach((query, index) => {
+                            SalesDB.query(query, { bind: [ids[index]] });
+                        });
+                        */
                     }
                     
                     return null;
@@ -517,8 +509,8 @@ const SalesMutation = new GraphQLObjectType({
 });
 
 const SalesSchema = new GraphQLSchema({
-    query: SalesQuery
-    , mutation: SalesMutation
+    query: SalesQuery,
+    mutation: SalesMutation
 });
 
 export default SalesSchema;

@@ -8,6 +8,7 @@ import api from './server/api/api';
 
 import GraphHTTP from 'express-graphql';
 import SalesSchema from './server/salesschema';
+import AccountsSchema from './server/accountsschema';
 
 let app = express();
 
@@ -52,21 +53,23 @@ if (!isProduction) {
   });
 }
 
-
 app.post('/checkEmail', api.checkEmail);
 app.post('/userLogin', api.userLogin);
 app.post('/createUser', api.createUser);
-app.post('/getProfile', api.getProfile);
-app.post('/updateContact', api.updateContact);
-app.post('/getProfile', api.getProfile);
-app.post('/updateProfile', api.updateProfile);
-app.post('/getUser', api.getUserInfo);
+app.post('/updateContacts', api.updateContacts);
+app.post('/getContacts', api.getContacts);
 
-app.use('/graphql', GraphHTTP({
+app.use('/graphql/Sales', GraphHTTP({
         schema: SalesSchema,
         pretty: true,
         graphiql: true
     }));
+    
+app.use('/graphql/Accounts', GraphHTTP({
+        schema: AccountsSchema,
+        pretty: true,
+        graphiql: true
+    }));    
 
 
 app.get('*', function (request, response) {
