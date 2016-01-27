@@ -6,6 +6,7 @@ class AuthService {
 
   checkEmail(email, cb) {
     // TODO, check email local before send to server
+    email = email.toLowerCase();
     
     request({
       url: 'checkEmail',
@@ -21,7 +22,8 @@ class AuthService {
         let error = response.error;
 
         if (!error) {
-          cb(null, response);
+            LocalStore.saveEmail(email);
+            cb(null, response);
         } else {
           cb(error);
         }

@@ -1,16 +1,17 @@
 import React from 'react';
-import Auth from '../services/AuthService'
+import Auth from '../services/AuthService';
+import LocalStore from '../LocalStore';
 
 export default class Login extends React.Component {
 
   constructor(props) {
     super(props)
    
-    const { history } = this.props;
-    
-    console.log("login-cc history", history);
-    
-    this.email = history.email;
+    this.email = LocalStore.email;
+  }
+  
+  componentDidMount() {
+      this._password.focus();
   }
 
   login(e) {
@@ -18,7 +19,7 @@ export default class Login extends React.Component {
     
     let self = this;
     
-    Auth.login(this.email, this.refs.password.value, (error, data) => {
+    Auth.login(this.email, this._password.value, (error, data) => {
       if(error) {
         return self.setState({error: error});
       } 
@@ -54,7 +55,7 @@ export default class Login extends React.Component {
         <form role="form">
         <div className="form-group">
           <label htmlFor="password">Password</label>
-          <input type="password" className="form-control" id="password" ref="password" placeholder="Password" />
+          <input type="password" className="form-control" id="password" ref={(c) => this._password = c} placeholder="Password" />
         </div>
         <button type="submit" className="btn btn-default" onClick={this.login.bind(this)}>Submit</button>
         <br />

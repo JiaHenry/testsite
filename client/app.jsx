@@ -20,10 +20,7 @@ const MainContainer = React.createClass({
     },
     
   componentWillMount() {
-    //if (this._isLoggedIn !== LocalStore.isLoggedIn()) {
-      //this._isLoggedIn !== LocalStore.isLoggedIn();
-      this.setState({ isLoggedIn: LocalStore.isLoggedIn()});
-    //}
+    this.setState({ isLoggedIn: LocalStore.isLoggedIn()});
   },
   componentWillReceiveProps() {
     console.log("mc_rp");
@@ -80,114 +77,38 @@ const MainContainer = React.createClass({
   }
 });
 
-const Welcome = React.createClass({
-  render() {
-    return <div>Welcome to the app!</div>
-  }
-});
-
-const App = React.createClass({
-    render() {
-        return (
-            <div>
-                <h1>App</h1>
-                <ul>
-                    <li><Link to="/about">About</Link></li>
-                    <li><Link to="/inbox">Inbox</Link></li>
-                </ul>
-                {this.props.children}
-            </div>
+function requireAuth(nextState, replace) {
+    if (!LocalStore.isLoggedIn()) {
+        // replace(state, pathname, query)  
+        replace(
+            { nextPathname: nextState.location.pathname },  // state
+            '/home',    // pathname
+            ''      // query
         )
     }
-});
+}
 
-const About = React.createClass({
-   render() {
-       return (<h3>About</h3>)
-   } 
-});
-
-const Inbox = React.createClass({
-   render(){
-       return (
-           <div>
-             <h2>Inbox</h2>
-             {this.props.children || "Welcome to your inbox"}
-            </div>
-       )
-   } 
-});
-
-
-const User = React.createClass({
-    getInitialState: function() {
-      return { data: undefined }
-    },
-    getData: function(id) {
-      let self = this;
-      this.setState({ data: undefined });
-      setTimeout(() => {
-      $.post(
-        "getUser", 
-        {id: id, fields: ["id", "name"]}, 
-        function(data) {
-          console.log(JSON.stringify(data));
-          self.setState({data: data});
-      })
-      }, 3000);
-    },
-    componentWillMount: function() {
-      console.log("msg:componentWillMount");
-      this.getData(this.props.params.id);
-    },
-    componentWillReceiveProps: function(nextProps){
-      console.log("msg:componentWillReceiveProps");
-      this.getData(nextProps.params.id);
-    },
-    render() {
-      console.log("message:render", Date.now());
-      if (this.state.data === undefined) {
-        return <div>Loading ....</div>
-      }
-      
-      if (!this.state.data) {
-        return <div>No matched data</div>
-      }
-      
-      return <div><pre>{JSON.stringify(this.state.data)}</pre></div>         
+function requireEmail(nextState, replace) {
+    if (!LocalStore.email) {
+        replace(
+            { nextPathname: nextState.location.pathname },  // state
+            '/home',    // pathname
+            ''      // query
+        )   
     }
-});
-
-function requireAuth(nextState, replace) {
-  if (!LocalStore.isLoggedIn()) {
-    replace({
-      pathname: '/login',
-      state: { nextPathname: nextState.location.pathname }
-    })
-    
-  }
 }
 
 render((
     <Router history={createBrowserHistory()}>
         <Route path='/' component={MainContainer}>
           <IndexRoute component={Home} />
-          <Route path='login' component={Login}>
+          <Route path='login' component={Login}  onEnter={requireEmail} >
             
           </Route>
-          <Route path='signup' component={Signup} />
-          <Route path='about' component={About} />
+          <Route path='signup' component={Signup} onEnter={requireEmail} />
           <Route path='home' component={Home} />
           <Route path='profile' component={UserProfile} onEnter={requireAuth} />
         </Route>
     </Router>
   ), document.getElementById('content')
 );
-
-/*
-<Route path='profile' component={UserProfile} />
-            <Route path='user' component={User} >
-                <Route path='profile' component={UserProfile} />
-            </Route>
-
-*/

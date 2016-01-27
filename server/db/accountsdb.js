@@ -1,5 +1,5 @@
 import Sequelize from "sequelize";
-import { connectionString } from './dbconfig';
+import { connectionString } from '../dbconfig';
 
 'use strict';
 

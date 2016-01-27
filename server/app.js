@@ -4,11 +4,11 @@ import path from 'path';
 import webpack from 'webpack';
 import config from './webpack.config.js';
 
-import api from './server/api/api';
+import api from './api/api';
 
 import GraphHTTP from 'express-graphql';
-import SalesSchema from './server/salesschema';
-import AccountsSchema from './server/accountsschema';
+import SalesSchema from './db/salesschema';
+import AccountsSchema from './db/accountsschema';
 
 let app = express();
 
@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 }));
 
-app.use(express.static(path.join(__dirname, 'client', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'client', 'public')));
 
 if (!isProduction) {
   var httpProxy = require('http-proxy');
@@ -34,7 +34,7 @@ if (!isProduction) {
   // We require the bundler inside the if block because
   // it is only needed in a development environment. Later
   // you will see why this is a good idea
-  var bundle = require('./server/bundle.js');
+  var bundle = require('./bundle.js');
   bundle();
 
   // Any requests to localhost:***/build is proxied
@@ -73,7 +73,7 @@ app.use('/graphql/Accounts', GraphHTTP({
 
 
 app.get('*', function (request, response) {
-  response.sendFile(path.resolve(__dirname, 'client/public', 'index.html'))
+  response.sendFile(path.resolve(__dirname, '../client/public', 'index.html'))
 })
 
 app.listen(8080, () => console.log("Server started. Ready go."));
