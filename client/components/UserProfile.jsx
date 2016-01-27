@@ -128,7 +128,8 @@ class ContactInformation extends React.Component {
   
   componentDidMount() {
       if (!this.props.email) {
-        this._firstName.focus();
+          //console.log("refs usable?", this.refs.firstName);
+        this.refs.firstName.focus();
       }
   }
   
@@ -150,7 +151,7 @@ class ContactInformation extends React.Component {
         }
           <div className="form-group">
             <label htmlFor="firstName">First Name</label>
-            <input type="text" className="form-control" ref={ (c) => { this._firstName = c; return "firstName" } } name="firstName" placeholder="First Name"  value={this.state.firstName} onChange={this.onDataInput} />
+            <input type="text" className="form-control" ref="firstName" name="firstName" placeholder="First Name"  value={this.state.firstName} onChange={this.onDataInput} />
           </div>
           <div className="form-group">
             <label htmlFor="lastName">Last Name</label>

@@ -1,7 +1,8 @@
 class LocalStore {
   constructor() {
     console.log("ls:cc");
-    this._user = localStorage.getItem('user');
+    let data = localStorage.getItem('user');
+    this._user = data && JSON.parse(data);
     this._email = this._user && this._user.email;
   }
   
@@ -28,7 +29,7 @@ class LocalStore {
   saveToken(data) {
     this._user = data;
     localStorage.setItem('jwt', data.jwt);
-    localStorage.setItem('user', data);
+    localStorage.setItem('user', JSON.stringify(data));
   }
   
   logout() {
