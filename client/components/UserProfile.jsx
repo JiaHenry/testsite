@@ -17,7 +17,13 @@ export default //AuthenticatedComponent(
 
 componentWillMount() {
     console.log("profile: cwm");
-  Auth.getContact((data) => {
+    
+}
+
+componentDidMount() {
+    console.log("profile: cdm");
+      //this._password.focus();
+    Auth.getContact((data) => {
       this.setState(data);
     });
 }
@@ -120,6 +126,12 @@ class ContactInformation extends React.Component {
     this.state = newProps.data || {};
   }
   
+  componentDidMount() {
+      if (!this.props.email) {
+        this._firstName.focus();
+      }
+  }
+  
   onDataInput(e) {
     let data = {[e.target.name]: e.target.value};
     this.setState(data);
@@ -138,7 +150,7 @@ class ContactInformation extends React.Component {
         }
           <div className="form-group">
             <label htmlFor="firstName">First Name</label>
-            <input type="text" className="form-control" ref="firstName" name="firstName" placeholder="First Name"  value={this.state.firstName} onChange={this.onDataInput} />
+            <input type="text" className="form-control" ref={ (c) => { this._firstName = c; return "firstName" } } name="firstName" placeholder="First Name"  value={this.state.firstName} onChange={this.onDataInput} />
           </div>
           <div className="form-group">
             <label htmlFor="lastName">Last Name</label>

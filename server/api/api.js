@@ -9,8 +9,8 @@ GraphQLSchema,
 graphql
 } from 'graphql';
 
-import SalesSchema from '../SalesSchema';
-import AccountsSchema from '../AccountsSchema';
+import SalesSchema from '../db/SalesSchema';
+import AccountsSchema from '../db/AccountsSchema';
 
 let api = {};
 

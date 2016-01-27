@@ -8,10 +8,14 @@ export default class Home extends React.Component {
     this.checkEmail = this.checkEmail.bind(this);
   }
   
+  componentDidMount() {
+      this._email.focus();
+  }
+  
   checkEmail(e) {
     e.preventDefault();
     
-    let email = this.refs.email.value;
+    let email = this._email.value;
     Auth.checkEmail(email, (error, data) => {
       if (error) {
         return this.setState({error: error});
@@ -21,8 +25,6 @@ export default class Home extends React.Component {
       
       const { history } = this.props;
     
-      history.email = email;
-    
       if(data.id == null ) {  
         history.pushState(null, '/signup');
       } else {
@@ -30,7 +32,7 @@ export default class Home extends React.Component {
       }
     });
   }
-    
+  
   render() {
     return (
       <div className="login jumbotron center-block">
@@ -38,7 +40,7 @@ export default class Home extends React.Component {
         <form role="form">
         <div className="form-group">
           <label htmlFor="email">Email</label>
-          <input type="text" className="form-control" ref="email" placeholder="email" />
+          <input type="text" className="form-control" ref={(c) => this._email = c} placeholder="email" />
         </div>
         <button type="submit" className="btn btn-default" onClick={this.checkEmail}>Submit</button>
         <br />

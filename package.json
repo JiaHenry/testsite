@@ -7,8 +7,8 @@
     "build": "browserify --extension=.jsx --extension=.js client/app.jsx -o client/public/build/build.js",
     "build-css": "rework-npm index.css | cleancss -o client/public/build/build.css",
     "start2": "npm run build && npm run build-css && nodemon app.js -e jsx,html --exec babel-node --presets \"es2015\" ",
-    "start": "npm run build-css && nodemon app.js --exec babel-node",
-    "debug": "npm run build-css && nodemon app.js --exec babel-node --debug",
+    "start": "npm run build-css && nodemon server/app.js --exec babel-node",
+    "debug": "npm run build-css && babel server -d es5 -s && nodemon es5/app.js --exec babel-node",
     "debug2": "npm run build && npm run build-css && nodemon app.js -e jsx,html --exec babel-node --presets \"es2015\" --debug",
     "watch": "npm run build-css && webpack-dev-server --inline --hot --progress --colors --content-base client/public/",
     "test": "echo \"Error: no test specified\" && exit 1"

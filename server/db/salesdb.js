@@ -1,7 +1,7 @@
 import Sequelize from "sequelize";
 //import _ from "lodash";
 //import Faker from "faker";
-import { connectionString } from './dbconfig';
+import { connectionString } from '../dbconfig';
 
 'use strict';
 

@@ -1,16 +1,18 @@
 import React from 'react';
-import Auth from '../services/AuthService'
+import Auth from '../services/AuthService';
+import LocalStore from '../LocalStore';
 
 export default class Signup extends React.Component {
 
   constructor(props) {
     super(props)
 
-    const { history } = this.props;
+    //const { history } = this.props;
     
-    console.log("signup-cc history", history);
+    //console.log("signup-cc history", history);
     
-    this.email = history.email;    
+    //this.email = history.email;
+    this.email = LocalStore.email;    
     
     this.signup = this.signup.bind(this);
   }

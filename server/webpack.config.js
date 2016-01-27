@@ -15,9 +15,9 @@ function getEntrySources(sources) {
 
 module.exports = {
     devtool: 'eval',
-    entry: getEntrySources([path.join(__dirname, 'client/app.jsx')]),
+    entry: getEntrySources([path.join(__dirname, '../client/app.jsx')]),
     output: {
-        path: path.join(__dirname, '/client/public/build/'),
+        path: path.join(__dirname, '../client/public/build/'),
         filename: 'bundle.js',
         
         // Everything related to Webpack should go through a build path,
